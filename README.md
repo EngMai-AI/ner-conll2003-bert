@@ -5,9 +5,7 @@ An end-to-end NER pipeline that identifies **people (PER), organizations (ORG), 
 - **Live demo:** [huggingface.co/spaces/mai-data-ai/ner-app](https://huggingface.co/spaces/mai-data-ai/ner-app)
 - **Model:** [mai-data-ai/ner-bert-base-cased-conll2003](https://huggingface.co/mai-data-ai/ner-bert-base-cased-conll2003)
 
-## APP DEMO 
-![<img width="750" height="547" alt="app_demo" src="https://github.com/user-attachments/assets/b76e2f9f-feef-40ed-87da-9e6c4aa1f3ad" />
-
+![App demo](app_demo.png)
 
 ## Results
 
@@ -47,9 +45,7 @@ Per-entity results for the best model (BERT-base-cased):
 - 83.3% of tokens are `O`, so the data is heavily imbalanced and entity-level F1 is used instead of accuracy.
 - The brief mentions dates, but CoNLL-2003 has no DATE type; the four types are PER, ORG, LOC and MISC.
 
-## EDA
-<img width="1289" height="390" alt="eda_sentence_length_entities" src="https://github.com/user-attachments/assets/eedf4414-3aed-49a4-ab8f-197d68ab6b6f" />
- 
+![EDA](eda_sentence_length_entities.png)
 
 ## Models
 
@@ -68,13 +64,15 @@ Per-entity results for the best model (BERT-base-cased):
 
 ```
 .
-├── ner_conll2003.ipynb      # full pipeline (Colab)
+├── Named_Entity_Recognition.ipynb   # full pipeline (Colab)
 ├── app/
-│   ├── app.py               # Gradio app (same code as the HF Space)
+│   ├── app.py                       # Gradio app (works on HF Spaces and locally)
 │   └── requirements.txt
 ├── results/
 │   └── comparison_all_models.csv
-├── images/
+├── app_demo.png
+├── eda_sentence_length_entities.png
+├── LICENSE
 └── README.md
 ```
 
@@ -88,15 +86,38 @@ python app/app.py
 Or use the model directly:
 
 ```python
-from transformers import pipeline
+import re
+import torch
+from transformers import AutoModelForTokenClassification, AutoTokenizer
 
-ner = pipeline(
-    "token-classification",
-    model="mai-data-ai/ner-bert-base-cased-conll2003",
-    aggregation_strategy="simple",
-)
-print(ner("Mohamed Salah plays for Liverpool and was born in Nagrig, Egypt."))
+name = "mai-data-ai/ner-bert-base-cased-conll2003"
+tok = AutoTokenizer.from_pretrained(name)
+model = AutoModelForTokenClassification.from_pretrained(name).eval()
+
+def predict_entities(text):
+    words = re.findall(r"\w+(?:[-'’]\w+)*|[^\w\s]", text)
+    enc = tok(words, is_split_into_words=True, return_tensors="pt")
+    with torch.no_grad():
+        pred = model(**enc).logits[0].argmax(-1).tolist()
+    seen, entities, cur = set(), [], None
+    for i, wid in enumerate(enc.word_ids(0)):
+        if wid is None or wid in seen:
+            continue                      # use the first sub-word of each word only
+        seen.add(wid)
+        label = model.config.id2label[pred[i]]
+        if label == "O":
+            cur = None
+        elif label.startswith("B-") or cur is None or cur["type"] != label[2:]:
+            cur = {"type": label[2:], "text": words[wid]}
+            entities.append(cur)
+        else:
+            cur["text"] += " " + words[wid]
+    return [(e["text"], e["type"]) for e in entities]
+
+print(predict_entities("Satya Nadella announced that Microsoft will invest in Egypt."))
 ```
+
+The model was trained with one label per word (on the first sub-word), so decode at word level as above. Generic `pipeline("token-classification", aggregation_strategy="simple")` can split a name into two entities when a middle sub-word is predicted as `B-`.
 
 ## Limitations
 
@@ -113,6 +134,10 @@ print(ner("Mohamed Salah plays for Liverpool and was born in Nagrig, Egypt."))
 - Train with case augmentation (lowercased/uppercased copies) so the model relies less on capitalization.
 - Repeat the comparison over several seeds and report mean and standard deviation.
 - Evaluate on out-of-domain data.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
 
 ## Tech stack
 
