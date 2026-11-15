@@ -47,8 +47,7 @@ Per-entity results for the best model (BERT-base-cased):
 - 83.3% of tokens are `O`, so the data is heavily imbalanced and entity-level F1 is used instead of accuracy.
 - The brief mentions dates, but CoNLL-2003 has no DATE type; the four types are PER, ORG, LOC and MISC.
 
-##EDA
-
+## EDA
 <img width="1289" height="390" alt="eda_sentence_length_entities" src="https://github.com/user-attachments/assets/eedf4414-3aed-49a4-ab8f-197d68ab6b6f" />
  
 
