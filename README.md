@@ -5,8 +5,7 @@ An end-to-end NER pipeline that identifies **people (PER), organizations (ORG), 
 - **Live demo:** [huggingface.co/spaces/mai-data-ai/ner-app](https://huggingface.co/spaces/mai-data-ai/ner-app)
 - **Model:** [mai-data-ai/ner-bert-base-cased-conll2003](https://huggingface.co/mai-data-ai/ner-bert-base-cased-conll2003)
 
-![App demo](<img width="750" height="547" alt="app_demo" src="https://github.com/user-attachments/assets/531c5cf3-8d12-4945-b2f6-8365567263f5" />
-)
+![App demo](<img width="750" height="547" alt="app_demo" src="https://github.com/user-attachments/assets/531c5cf3-8d12-4945-b2f6-8365567263f5" />)
 
 ## Results
 
@@ -46,8 +45,7 @@ Per-entity results for the best model (BERT-base-cased):
 - 83.3% of tokens are `O`, so the data is heavily imbalanced and entity-level F1 is used instead of accuracy.
 - The brief mentions dates, but CoNLL-2003 has no DATE type; the four types are PER, ORG, LOC and MISC.
 
-![EDA](<img width="1289" height="390" alt="eda_sentence_length_entities" src="https://github.com/user-attachments/assets/1a2abdc1-961f-4d3f-98d2-0217d5b25ac4" />
-)
+![EDA](<img width="1289" height="390" alt="eda_sentence_length_entities" src="https://github.com/user-attachments/assets/1a2abdc1-961f-4d3f-98d2-0217d5b25ac4" />)
 
 ## Models
 
